@@ -33,13 +33,20 @@ def total_coloring(graph):
     #adding problem constraints
     for u,v in graph.edges():
              problem.addConstraint(AllDifferentConstraint(), [u,v,edges[(u,v)]])
-             for y,z in graph.edges():
-               #add constraint for edges & change for duplicates
-               if ((u == y and v != z) or (u != y and v == z) or (u == z and v != y) or (u != z and v == y)):
-                   if ((u,v),(y,z)) not in edges_check_list and ((y,z),(u,v)) not in edges_check_list:
-                       problem.addConstraint(AllDifferentConstraint(), [edges[(u,v)],edges[(y,z)]])
-                       edges_check_list.append(((u,v),(y,z)))
 
+    for u in graph.nodes():
+        list = []
+        for k in graph.neighbors(u):
+            if (u,k) in edges:
+                list.append(edges[(u,k)])
+        if len(list) > 1:
+            problem.addConstraint(AllDifferentConstraint(), list)
+        for v in graph.neighbors(u):
+            if (v,u) in edges:
+                list.append(edges[(v,u)])
+        if len(list) > 1:
+            problem.addConstraint(AllDifferentConstraint(), list)
+    
 
     # lower bound for chromatic number is maxDeg + 1
     low = maxDegree + 1
