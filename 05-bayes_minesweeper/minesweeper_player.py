@@ -127,6 +127,22 @@ class Player:
             for j in range(self.columns):
                 if self.game[i,j] == MINE:
                     probability[i,j] = 1
+                #here enter bayas modificitaion of pribability
+                else:
+                    if self.game[i,j] >= 0:
+                        probability[i,j] = 0
+                        for u in self.neighbors[i,j]:
+                            if (probability[u]) == 0 and self.game[u] < 0:
+                                probability[u] = self.mines[i,j] / self.unknown[i,j]
+                                if self.mines[i,j] / self.unknown[i,j] == 1:
+                                     self.game[i,j] = MINE
+                                     self.invalidate_with_neighbors((i,j))
+                            else:
+                                probability[u] *= self.mines[i,j] / self.unknown[i,j]
+                    else:
+                        if probability[i,j] == 0:
+                            probability[i,j] = self.mine_prb
+
 
         # TODO: Finish this calculations
         # Implementing this function is not obligatory but it may help to fulfill the homework.
