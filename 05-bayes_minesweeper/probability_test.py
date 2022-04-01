@@ -17,7 +17,7 @@ def evaluate(mine_prb, board, correct_probabilities):
     player.preprocess_all()
     print("Tested board:")
     print(board)
-    tested_probabilities = player.get_each_mine_probability()
+    tested_probabilities, bordel = player.get_each_mine_probability()
     print("Correct probabilities of mines")
     print(correct_probabilities)
     print("Your probabilities of mines")

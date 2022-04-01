@@ -1,0 +1,13 @@
+Hledani falesne mince
+
+1) n+1/(2n)   -> pocet hlav v sacku vs pocet vsech stran
+
+
+2) K hodu, jaka je pr, ze je falesna:
+
+Bayes -> 1 * P(falsena)/P(k hlav), P(falesna) zname, spocitame P(k hlav) pomoci marginalizace.
+
+
+3) Testujeme falesnost:
+P(K hlav && prava) v P(nepadne k hlav && falesna) = 0
+= P(K hlav && prava) = P( k hlab | prava) * P(prava)
