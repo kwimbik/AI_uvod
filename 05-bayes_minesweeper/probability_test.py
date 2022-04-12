@@ -17,7 +17,7 @@ def evaluate(mine_prb, board, correct_probabilities):
     player.preprocess_all()
     print("Tested board:")
     print(board)
-    tested_probabilities, bordel = player.get_each_mine_probability()
+    tested_probabilities = player.get_each_mine_probability()
     print("Correct probabilities of mines")
     print(correct_probabilities)
     print("Your probabilities of mines")
@@ -28,55 +28,55 @@ def evaluate(mine_prb, board, correct_probabilities):
 
 def main():
     tests = {
-        "first": (.2,
-numpy.array([
-[1,       UNKNOWN, UNKNOWN],
-[UNKNOWN, UNKNOWN, UNKNOWN]
-]),
-numpy.array([
-[0,   1/3, .2],
-[1/3, 1/3, .2]
-])),
-        "second": (.7,
-numpy.array([
-[2,       UNKNOWN, UNKNOWN],
-[UNKNOWN, UNKNOWN, UNKNOWN]
-]),
-numpy.array([
-[0,   2/3, .7],
-[2/3, 2/3, .7]
-])),
-        "third": (.2,
-numpy.array([
-[1, UNKNOWN, UNKNOWN],
-[1, UNKNOWN, UNKNOWN]
-]),
-numpy.array([
-[0, .5, .2],
-[0, .5, .2]
-])),
-        "fourth": (.3,
-numpy.array([
-[1, UNKNOWN, UNKNOWN],
-[1, UNKNOWN, UNKNOWN],
-[1, UNKNOWN, UNKNOWN]
-]),
-numpy.array([
-[0, 0, .3],
-[0, 1, .3],
-[0, 0, .3]
-])),
-        "fifth": (.4,
-numpy.array([
-[1, UNKNOWN, UNKNOWN],
-[2, UNKNOWN, UNKNOWN],
-[1, UNKNOWN, UNKNOWN]
-]),
-numpy.array([
-[0, 1, .4],
-[0, 0, .4],
-[0, 1, .4]
-])),
+#        "first": (.2,
+#numpy.array([
+#[1,       UNKNOWN, UNKNOWN],
+#[UNKNOWN, UNKNOWN, UNKNOWN]
+#]),
+#numpy.array([
+#[0,   1/3, .2],
+#[1/3, 1/3, .2]
+#])),
+#        "second": (.7,
+#numpy.array([
+#[2,       UNKNOWN, UNKNOWN],
+#[UNKNOWN, UNKNOWN, UNKNOWN]
+#]),
+#numpy.array([
+#[0,   2/3, .7],
+#[2/3, 2/3, .7]
+#])),
+#        "third": (.2,
+#numpy.array([
+#[1, UNKNOWN, UNKNOWN],
+#[1, UNKNOWN, UNKNOWN]
+#]),
+#numpy.array([
+#[0, .5, .2],
+#[0, .5, .2]
+#])),
+#        "fourth": (.3,
+#numpy.array([
+#[1, UNKNOWN, UNKNOWN],
+#[1, UNKNOWN, UNKNOWN],
+#[1, UNKNOWN, UNKNOWN]
+#]),
+#numpy.array([
+#[0, 0, .3],
+#[0, 1, .3],
+#[0, 0, .3]
+#])),
+#        "fifth": (.4,
+#numpy.array([
+#[1, UNKNOWN, UNKNOWN],
+#[2, UNKNOWN, UNKNOWN],
+#[1, UNKNOWN, UNKNOWN]
+#]),
+#numpy.array([
+#[0, 1, .4],
+#[0, 0, .4],
+#[0, 1, .4]
+#])),
         "sixth": (.15,
 numpy.array([
 [1,    UNKNOWN, UNKNOWN],

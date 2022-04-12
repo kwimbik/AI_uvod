@@ -1,5 +1,6 @@
 import numpy
 from minesweeper_common import UNKNOWN, MINE, get_neighbors
+from constraint import *
 
 RUN_TESTS = False
 
@@ -51,10 +52,8 @@ class Player:
 
     def probability_player(self):
         # Return an unexplored cell with the minimal probability of mine
-        mineFound = True
-        while mineFound:
-            prb,mineFound  = self.get_each_mine_probability()
-
+        best_probab_cell = []
+        prb  = self.get_each_mine_probability()
         min_prb = 1
         for i in range(self.rows):
             for j in range(self.columns):
@@ -62,10 +61,15 @@ class Player:
                     if prb[i,j] > 0.9999: # Float-point arithmetics may not be exact.
                         self.game[i,j] = MINE
                         self.invalidate_with_neighbors((i,j))
+                    #if min_prb == prb[i,j]:
+                    #    best_probab_cell.append((i,j))
                     if min_prb > prb[i,j]:
+                        #best_probab_cell = []
+                        #best_probab_cell.append((i,j))
                         min_prb = prb[i,j]
                         best_position = (i,j)
         return best_position
+        #return best_probab_cell[numpy.random.randint(0,len(best_probab_cell))] ## omezit nahodne na okraj vypoctu
 
     def invalidate_with_neighbors(self, pos):
         # Insert a given position and its neighborhood to the list of cell requiring update of precomputed information.
@@ -124,117 +128,98 @@ class Player:
                 if self.game[i,j] >= 0:
                     assert(self.mines[i,j] == self.game[i,j] - sum(1 if self.game[neigh] == MINE else 0 for neigh in self.neighbors[i,j]))
 
-    def get_each_mine_probability(self):
 
-        
-        # Returns a matrix of probabilities of a mine of each cell
+    def get_each_mine_probability(self):
+        possibleMineCells = []
+        masterCells = []
         probability = numpy.zeros((self.rows,self.columns))
-        foundMineCell = False  #If found mine
+        # Returns a matrix of probabilities of a mine of each cell
         for i in range(self.rows):
             for j in range(self.columns):
+                #already discovered mine cell
                 if self.game[i,j] == MINE:
                     probability[i,j] = 1
-                #here enter bayas modificitaion of pribability
+                    #already discovered non mine cell
                 elif self.game[i,j] >= 0:
                     probability[i,j] = 0 
-                 #All combinations across all neigbour valid 
                 else: 
                     nonZeroCells = getNonZeroCells(self.neighbors[i,j], self)
-                    possibleMineCells = []
+                    #(i,j) not in fringe
                     if len(nonZeroCells) == 0:
                         probability[i,j] = self.mine_prb
                     else:
-                        possibleMineCells = getUnknownCells(nonZeroCells, self)
-                        combNumber = generateMineCombination(self, possibleMineCells, (i,j), nonZeroCells) #positiveResults/allValidresults
-                        # debug
-                        if combNumber > 0.999:
-                            self.game[i,j] = MINE
-                            self.invalidate_with_neighbors((i,j))
-                            probability[i,j] = 1
-                            foundMineCell = True
-                            for u in self.neighbors[i,j]:
-                                if self.mines[u] > 0:
-                                    self.mines[u] -= 1
-                            return probability, foundMineCell
-                        else:
-                           probability[i,j] = combNumber
-        return probability, foundMineCell
+                        #(i,j) in fringe
+                        possibleMineCells.append((i,j))
+                        for cell in nonZeroCells:
+                            if cell not in masterCells:
+                                    masterCells.append(cell)
+        if possibleMineCells == []:
+            return probability
+        #using csp to get all possible solutions and calculate mine probab for each cell
+        solutions = tryCspSolver(self, possibleMineCells, masterCells)
+        solutionLen = len(solutions)
+        min, max = getMinAndMaxNumberOfMinesInSolutions(solutions)
+        baseprobab = getBaseProbab(min, max, self.mine_prb)
+        for solution in solutions:
+            val = getSOlutionValue(solution)
+            solution["value"] = val
 
+        for mineCell in possibleMineCells:
+            value = 0
+            for solution in solutions:
+                solutionVal = solution["value"]
+                if (solutionVal == min):
+                    value += solution[mineCell]*baseprobab
+                else:
+                    value += solution[mineCell]*(self.mine_prb**(solutionVal - min))
+            probability[mineCell] = value / solutionLen
+        return probability
+
+def tryCspSolver(self, mineCells, masterCells):
+        domain_range = [0,1]
+        problem = Problem()
+        for cell in mineCells:
+            problem.addVariable(cell, domain_range)
+        for k in masterCells:
+            neighCells = []
+            for n in self.neighbors[k]:
+                if (self.game[n] == -1):
+                    neighCells.append(n)
+            problem.addConstraint(ExactSumConstraint(self.mines[k]), neighCells)
+        solutions = problem.getSolutions()
+        return solutions
 
 def getNonZeroCells(cells, self):
         DiscoveredCells = []
         for u in cells:
-            if self.mines[u] > 0:
+            if self.mines[u] >= 0:
                 DiscoveredCells.append(u)
         return DiscoveredCells
 
-def getUnknownCells(cells, self):
-        DiscoveredCells = []
-        for u in cells:
-            for k in self.neighbors[u]:
-                if self.game[k] == -1 and not k in DiscoveredCells:
-                    DiscoveredCells.append(k)
-        return DiscoveredCells
+def getMinAndMaxNumberOfMinesInSolutions(solutions):
+    min = len(solutions)
+    max = 0
+    for solution in solutions:
+        count = 0
+        for s in solution:
+            count += solution[s]
+        if count < min:
+            min = count
+        if count > max:
+            max = count
+    return min, max
 
+def getBaseProbab(min, max, probab):
+    baseProbab = 1
+    for k in range(1,max-min+1):
+        baseProbab -= probab**k
+    return baseProbab
 
-
-def combinations(iterable, r):
-    # combinations('ABCD', 2) --> AB AC AD BC BD CD
-    # combinations(range(4), 3) --> 012 013 023 123
-    pool = tuple(iterable)
-    n = len(pool)
-    if r > n:
-        return
-    indices = list(range(r))
-    yield tuple(pool[i] for i in indices)
-    while True:
-        for i in reversed(range(r)):
-            if indices[i] != i + n - r:
-                break
-        else:
-            return
-        indices[i] += 1
-        for j in range(i+1, r):
-            indices[j] = indices[j-1] + 1
-        yield tuple(pool[i] for i in indices)
-
-
-def generateMineCombination(self, mineCells, objectiveCell, masterCells):
-    #pokud validni, pripsat jako overall kombinaci a pokud zaroven mina na objective policku, pripsat jeden bod tam
-    
-    mineField = {}
-    allValidCombinations = 0
-    allValidCombinationsWithObjectiveCell = 0
-    for k in range(len(mineCells)):
-        mineArrangements = combinations(mineCells, k)
-        for combination in mineArrangements:
-            for i in combination:
-                mineField[i] = 1
-            if validateMineCombinations(self, mineField, masterCells):
-                if objectiveCell in mineField:
-                    allValidCombinationsWithObjectiveCell += 1 #adds one to combination with objective cell
-                allValidCombinations += 1       #adds one to overall valid combinations
-            mineField.clear()
-    if allValidCombinations == 0:
-        return 0
-    return allValidCombinationsWithObjectiveCell / allValidCombinations
-                
-
-def validateMineCombinations(self, mineField, masterCells):
-    for MC in masterCells:
-        value = self.mines[MC]
-        for n in self.neighbors[MC]:
-            if n in mineField:
-                value -= 1
-        if value != 0:
-            return False
-    return True
-
-
-
-
-
-
+def getSOlutionValue(solution):
+    val = 0
+    for k in solution:
+        val += solution[k]
+    return val
 
 
     
