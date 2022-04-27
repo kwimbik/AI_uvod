@@ -10,4 +10,7 @@ Bayes -> 1 * P(falsena)/P(k hlav), P(falesna) zname, spocitame P(k hlav) pomoci 
 
 3) Testujeme falesnost:
 P(K hlav && prava) v P(nepadne k hlav && falesna) = 0
-= P(K hlav && prava) = P( k hlab | prava) * P(prava)
+= P(K hlav && prava) = P( k hlav | prava) * P(prava)
+
+pravdpodobnosti min ->
+spocitam pr vsech modelu (jen zna zaklade p), podivame se, v kterych je pole, co nas zajima. 
